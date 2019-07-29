@@ -5,6 +5,7 @@ from airflow.contrib.hooks.aws_hook import AwsHook
 
 
 class StageToRedshiftOperator(BaseOperator):
+    
     ui_color = '#358140'
 
     @apply_defaults
@@ -16,6 +17,7 @@ class StageToRedshiftOperator(BaseOperator):
                  table='',
                  create_query='',
                  copy_query='',
+                 json_params='',
                  *args, **kwargs)
 
         super(StageToRedshiftOperator, self).__init__(*args, **kwargs)
@@ -26,15 +28,35 @@ class StageToRedshiftOperator(BaseOperator):
         self.table = table
         self.create_query = create_query
         self.copy_query = copy_query
+        self.json_params = json_params
 
 
     def execute(self, context):
+        """Drop existing Redshift table, Create and copy into new Redshift table"""
+        
         aws_hook = AwsHook(self.aws_conn_id)
-
+        credentials = aws_hook.get_credentials()
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
 
-        self.log.info("Dropping {} from redshift".format(self.table))
+        self.log.info("Dropping {} from redshift (if exists)".format(self.table))
         redshift.run("drop table if exists {}".format(self.table))
+
+        self.log.info("Creating {} in redshift".format(self.table))
+        redshift.run(create_query)
+
+        self.log.info("Populating {} in redshift".format(self.table))
+        s3_path = "s3://{}/{}".format(self.s3_bucket, self.s3_key)
+        
+        copy_sql = self.copy_query.format(self.table,
+                                          s3_path,
+                                          credentials.access_key,
+                                          credentials.secret_key,
+                                          self.json_params)
+
+        self.log.info("Executing {}".format(copy_sql))
+        redshift.run(copy_sql)
+
+
 
 
 

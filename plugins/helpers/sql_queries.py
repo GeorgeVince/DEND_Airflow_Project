@@ -1,4 +1,34 @@
 class SqlQueries:
+
+    s3_copy = ("""
+    COPY {}
+    FROM  {}
+    access_key_id '{}'
+    secret_access_key '{}'
+    compupdate off region 'us-west-2'
+    JSON {} truncatecolumns;
+     """)
+
+
+    staging_events_table_create= ("""CREATE TABLE IF NOT EXISTS public.staging_events (artist     VARCHAR,
+                                                                            auth           VARCHAR,
+                                                                            firstName      VARCHAR,
+                                                                            gender         VARCHAR,
+                                                                            itemInSession  SMALLINT,
+                                                                            lastName       VARCHAR,
+                                                                            length         FLOAT,
+                                                                            level          VARCHAR,
+                                                                            location       VARCHAR,
+                                                                            method         VARCHAR,
+                                                                            page           VARCHAR,
+                                                                            registration   FLOAT,
+                                                                            sessionId      SMALLINT,
+                                                                            song           VARCHAR,
+                                                                            status         INT,
+                                                                            TS             FLOAT,
+                                                                            userAgent      VARCHAR,
+                                                                            userId         INT);""")
+
     songplay_table_insert = ("""
         SELECT
                 md5(events.sessionid || events.start_time) songplay_id,

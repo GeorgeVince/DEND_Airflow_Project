@@ -9,8 +9,12 @@ from helpers import SqlQueries
 # AWS_KEY = os.environ.get('AWS_KEY')
 # AWS_SECRET = os.environ.get('AWS_SECRET')
 
+BUCKET = 'udacity-dend'
+SONG_KEY = 'song_data/'
+EVENT_KEY = 'log_data/'
+
 default_args = {
-    'owner': 'udacity',
+    'owner': 'GeorgeVince',
     'start_date': datetime(2019, 1, 12),
     'depends_on_past': False,
     'retries': 4,
@@ -19,7 +23,7 @@ default_args = {
     'catchup': False,
 }
 
-dag = DAG('udac_example_dag',
+dag = DAG('s3_to_redshift',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow',
           schedule_interval=@hourly
@@ -27,9 +31,32 @@ dag = DAG('udac_example_dag',
 
 start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
 
+    """Summary
+    
+    Attributes:
+        aws_conn_id (TYPE): Description
+        copy_query (TYPE): Description
+        create_query (TYPE): Description
+        json_params (TYPE): Description
+        redshift_conn_id (TYPE): Description
+        s3_bucket (TYPE): Description
+        s3_key (TYPE): Description
+        table (TYPE): Description
+        ui_color (str): Description
+    """
+
+
 stage_events_to_redshift = StageToRedshiftOperator(
     task_id='Stage_events',
-    dag=dag
+    dag=dag,
+    aws_conn_id="aws_credentials",
+    redshift_conn_id="redshift",
+    table="staging_events",
+    s3_bucket=BUCKET,
+    s3_key = EVENT_KEY,
+    copy_query = SqlQueries.copy_query,
+    create_queyr = SqlQueries.staging_events_table_create,
+    json_params = "'s3://udacity-dend/log_json_path.json'"
 )
 
 stage_songs_to_redshift = StageToRedshiftOperator(
