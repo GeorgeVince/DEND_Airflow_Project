@@ -31,21 +31,6 @@ dag = DAG('s3_to_redshift',
 
 start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
 
-    """Summary
-    
-    Attributes:
-        aws_conn_id (TYPE): Description
-        copy_query (TYPE): Description
-        create_query (TYPE): Description
-        json_params (TYPE): Description
-        redshift_conn_id (TYPE): Description
-        s3_bucket (TYPE): Description
-        s3_key (TYPE): Description
-        table (TYPE): Description
-        ui_color (str): Description
-    """
-
-
 stage_events_to_redshift = StageToRedshiftOperator(
     task_id='Stage_events',
     dag=dag,
@@ -55,7 +40,7 @@ stage_events_to_redshift = StageToRedshiftOperator(
     s3_bucket=BUCKET,
     s3_key = EVENT_KEY,
     copy_query = SqlQueries.copy_query,
-    create_queyr = SqlQueries.staging_events_table_create,
+    create_query = SqlQueries.staging_events_table_create,
     json_params = "'s3://udacity-dend/log_json_path.json'"
 )
 
