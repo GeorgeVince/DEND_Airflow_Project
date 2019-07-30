@@ -2,7 +2,7 @@ class SqlQueries:
 
     s3_copy = ("""
     COPY {}
-    FROM  {}
+    FROM  '{}'s
     access_key_id '{}'
     secret_access_key '{}'
     compupdate off region 'us-west-2'
@@ -28,6 +28,17 @@ class SqlQueries:
                                                                             TS             FLOAT,
                                                                             userAgent      VARCHAR,
                                                                             userId         INT);""")
+
+    staging_songs_table_create = (""" CREATE TABLE IF NOT EXISTS staging_songs (num_songs        INT,
+                                                                             artist_id        VARCHAR,
+                                                                             artist_latitude  FLOAT,
+                                                                             artist_longitude FLOAT,
+                                                                             artist_location  VARCHAR,
+                                                                             artist_name      VARCHAR,
+                                                                             song_id          VARCHAR,
+                                                                             title            VARCHAR,
+                                                                             duration         FLOAT,
+                                                                             year             INT);""")
 
     songplay_table_insert = ("""
         SELECT
