@@ -26,7 +26,7 @@ default_args = {
 dag = DAG('s3_to_redshift',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow',
-          schedule_interval=@hourly
+          schedule_interval= '@hourly'
         )
 
 start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
@@ -39,7 +39,7 @@ stage_events_to_redshift = StageToRedshiftOperator(
     table="staging_events",
     s3_bucket=BUCKET,
     s3_key = EVENT_KEY,
-    copy_query = SqlQueries.copy_query,
+    copy_query = SqlQueries.s3_copy,
     create_query = SqlQueries.staging_events_table_create,
     json_params = "'s3://udacity-dend/log_json_path.json'"
 )

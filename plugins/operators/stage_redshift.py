@@ -18,12 +18,12 @@ class StageToRedshiftOperator(BaseOperator):
                  create_query='',
                  copy_query='',
                  json_params='',
-                 *args, **kwargs)
+                 *args, **kwargs):
 
         super(StageToRedshiftOperator, self).__init__(*args, **kwargs)
         self.s3_bucket = s3_bucket
-        self.s3_key = s3.s3_key
-        self.aws_conn_id = aws.aws_conn_id
+        self.s3_key = s3_key
+        self.aws_conn_id = aws_conn_id
         self.redshift_conn_id = redshift_conn_id
         self.table = table
         self.create_query = create_query
@@ -42,7 +42,7 @@ class StageToRedshiftOperator(BaseOperator):
         redshift.run("drop table if exists {}".format(self.table))
 
         self.log.info("Creating {} in redshift".format(self.table))
-        redshift.run(create_query)
+        redshift.run(self.create_query)
 
         self.log.info("Populating {} in redshift".format(self.table))
         s3_path = "s3://{}/{}".format(self.s3_bucket, self.s3_key)
