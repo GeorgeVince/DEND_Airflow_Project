@@ -2,7 +2,7 @@ class SqlQueries:
 
     s3_copy = ("""
     COPY {}
-    FROM  '{}'s
+    FROM  '{}'
     access_key_id '{}'
     secret_access_key '{}'
     compupdate off region 'us-west-2'
