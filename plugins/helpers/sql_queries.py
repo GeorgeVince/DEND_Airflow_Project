@@ -9,67 +9,79 @@ class SqlQueries:
     JSON {} truncatecolumns;
      """)
 
+    insert_sql = """
+        INSERT INTO {}
+        {}
+        ;
+    """
 
-    staging_events_table_create= ("""CREATE TABLE IF NOT EXISTS public.staging_events (artist     VARCHAR,
-                                                                            auth           VARCHAR,
-                                                                            firstName      VARCHAR,
-                                                                            gender         VARCHAR,
-                                                                            itemInSession  SMALLINT,
-                                                                            lastName       VARCHAR,
-                                                                            length         FLOAT,
-                                                                            level          VARCHAR,
-                                                                            location       VARCHAR,
-                                                                            method         VARCHAR,
-                                                                            page           VARCHAR,
-                                                                            registration   FLOAT,
-                                                                            sessionId      SMALLINT,
-                                                                            song           VARCHAR,
-                                                                            status         INT,
-                                                                            TS             FLOAT,
-                                                                            userAgent      VARCHAR,
-                                                                            userId         INT);""")
+    staging_events_table_create= ("""
+    CREATE TABLE IF NOT EXISTS public.staging_events (artist     VARCHAR,
+    auth           VARCHAR,
+    firstName      VARCHAR,
+    gender         VARCHAR,
+    itemInSession  SMALLINT,
+    lastName       VARCHAR,
+    length         FLOAT,
+    level          VARCHAR,
+    location       VARCHAR,
+    method         VARCHAR,
+    page           VARCHAR,
+    registration   FLOAT,
+    sessionId      SMALLINT,
+    song           VARCHAR,
+    status         INT,
+    TS             FLOAT,
+    userAgent      VARCHAR,
+    userId         INT);""")
 
-    staging_songs_table_create = (""" CREATE TABLE IF NOT EXISTS staging_songs (num_songs        INT,
-                                                                             artist_id        VARCHAR,
-                                                                             artist_latitude  FLOAT,
-                                                                             artist_longitude FLOAT,
-                                                                             artist_location  VARCHAR,
-                                                                             artist_name      VARCHAR,
-                                                                             song_id          VARCHAR,
-                                                                             title            VARCHAR,
-                                                                             duration         FLOAT,
-                                                                             year             INT);""")
+    staging_songs_table_create = ("""
+    CREATE TABLE IF NOT EXISTS staging_songs (
+    num_songs        INT,
+    artist_id        VARCHAR,
+    artist_latitude  FLOAT,
+    artist_longitude FLOAT,
+    artist_location  VARCHAR,
+    artist_name      VARCHAR,
+    song_id          VARCHAR,
+    title            VARCHAR,
+    duration         FLOAT,
+    year             INT);
+    """)
 
-    songplay_table_create = ("""CREATE TABLE IF NOT EXISTS songplays (songplay_id   INT     IDENTITY(0,1)  NOT NULL,
-                                                                 start_time     FLOAT                  NOT NULL    sortkey, 
-                                                                 user_id        INT                    NOT NULL, 
-                                                                 level          VARCHAR, 
-                                                                 song_id        VARCHAR                NOT NULL    distkey, 
-                                                                 artist_id      VARCHAR                NOT NULL, 
-                                                                 session_id     INT, 
-                                                                 location       VARCHAR, 
-                                                                 user_agent     VARCHAR                );""")
+    songplay_table_create = ("""
+    CREATE TABLE public.songplays (
+    playid varchar(32) NOT NULL,
+    start_time timestamp NOT NULL,
+    userid int4 NOT NULL,
+    "level" varchar(256),
+    songid varchar(256),
+    artistid varchar(256),
+    sessionid int4,
+    location varchar(256),
+    user_agent varchar(256),
+    CONSTRAINT songplays_pkey PRIMARY KEY (playid));
+    """)
 
-    songplay_table_insert = ("""INSERT INTO songplays (start_time, user_id, level, song_id, artist_id, session_id, location, user_agent)
-                            SELECT
-                                stg_events.ts as start_time,
-                                stg_events.userid as user_id,
-                                stg_events.level as level,
-                                stg_songs.song_id as song_id,
-                                stg_songs.artist_id as artist_id,
-                                stg_events.sessionid as session_id,
-                                stg_events.location as location,
-                                stg_events.useragent as user_agent
-                            FROM
-                                staging_events as stg_events
-                            JOIN
-                                staging_songs as stg_songs
-                            ON
-                                (stg_events.artist = stg_songs.artist_name
-                                 AND
-                                 stg_events.song = stg_songs.title
-                                 AND 
-                                 stg_events.length = stg_songs.duration)""")
+    songplay_table_insert = ("""
+        SELECT
+                md5(events.sessionid || events.start_time) songplay_id,
+                events.start_time, 
+                events.userid, 
+                events.level, 
+                songs.song_id, 
+                songs.artist_id, 
+                events.sessionid, 
+                events.location, 
+                events.useragent
+                FROM (SELECT TIMESTAMP 'epoch' + ts/1000 * interval '1 second' AS start_time, *
+            FROM staging_events
+            WHERE page='NextSong') events
+            LEFT JOIN staging_songs songs
+            ON events.song = songs.title
+                AND events.artist = songs.artist_name
+                AND events.length = songs.duration
+    """)
 
     
     user_table_insert = ("""

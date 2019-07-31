@@ -38,12 +38,6 @@ class StageToRedshiftOperator(BaseOperator):
         credentials = aws_hook.get_credentials()
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
 
-        self.log.info("Dropping {} from redshift (if exists)".format(self.table))
-        redshift.run("drop table if exists {}".format(self.table))
-
-        self.log.info("Creating {} in redshift".format(self.table))
-        redshift.run(self.create_query)
-
         self.log.info("Populating {} in redshift".format(self.table))
         s3_path = "s3://{}/{}".format(self.s3_bucket, self.s3_key)
         
