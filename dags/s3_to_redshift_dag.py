@@ -4,12 +4,13 @@ from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators import (StageToRedshiftOperator, LoadFactOperator,
                                 LoadDimensionOperator, DataQualityOperator)
+from airflow.operators.postgres_operator import PostgresOperator
 from helpers import SqlQueries
 
 # AWS_KEY = os.environ.get('AWS_KEY')
 # AWS_SECRET = os.environ.get('AWS_SECRET')
 BUCKET = 'udacity-dend'
-SONG_KEY = 'song_data/'
+SONG_KEY = 'song_data/A/A/*'
 EVENT_KEY = 'log_data/'
 
 
@@ -26,10 +27,15 @@ default_args = {
 dag = DAG('s3_to_redshift_v2',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow',
-          schedule_interval= '@hourly'
+          schedule_interval= '@hourly',
+          catchup=False,
         )
 
-start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
+#Ensure we have the required tables set up in Redshift
+start_operator = PostgresOperator(task_id='Begin_execution',
+    dag=dag,
+    postgres_conn_id="redshift",
+    sql="create_tables.sql")
 
 stage_events_to_redshift = StageToRedshiftOperator(
     task_id='Stage_events',
@@ -39,7 +45,7 @@ stage_events_to_redshift = StageToRedshiftOperator(
     table="staging_events",
     s3_bucket=BUCKET,
     s3_key = EVENT_KEY,
-    copy_query = SqlQueries.s3_copy,
+
     create_query = SqlQueries.staging_events_table_create,
     json_params = "'s3://udacity-dend/log_json_path.json'"
 )
@@ -62,6 +68,7 @@ load_songplays_table = LoadFactOperator(
     redshift_conn_id="redshift",
     create_query=SqlQueries.songplay_table_create,
     sql_insert=SqlQueries.songplay_table_insert,
+    table="song_plays",
     dag=dag
 )
 
@@ -90,10 +97,12 @@ load_songplays_table = LoadFactOperator(
 #     dag=dag
 # )
 
-# end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
+end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 
 start_operator >> stage_events_to_redshift
 start_operator >> stage_songs_to_redshift
 
 stage_events_to_redshift >> load_songplays_table
 stage_songs_to_redshift >> load_songplays_table
+
+load_songplays_table >> end_operator
