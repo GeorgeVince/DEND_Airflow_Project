@@ -2,6 +2,7 @@ from airflow.hooks.postgres_hook import PostgresHook
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 from airflow.contrib.hooks.aws_hook import AwsHook
+from helpers import SqlQueries
 
 
 class StageToRedshiftOperator(BaseOperator):
@@ -15,7 +16,6 @@ class StageToRedshiftOperator(BaseOperator):
                  aws_conn_id = '',
                  redshift_conn_id ='',
                  table='',
-                 create_query='',
                  copy_query='',
                  json_params='',
                  *args, **kwargs):
@@ -26,7 +26,6 @@ class StageToRedshiftOperator(BaseOperator):
         self.aws_conn_id = aws_conn_id
         self.redshift_conn_id = redshift_conn_id
         self.table = table
-        self.create_query = create_query
         self.copy_query = copy_query
         self.json_params = json_params
 
