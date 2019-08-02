@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS public.users (
 	CONSTRAINT users_pkey PRIMARY KEY (userid)
 );
 
-CREATE TABLE public."time" (
+CREATE TABLE IF NOT EXISTS public."time" (
 	start_time timestamp NOT NULL,
 	"hour" int4,
 	"day" int4,
