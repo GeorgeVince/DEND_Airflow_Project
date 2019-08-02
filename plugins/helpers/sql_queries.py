@@ -15,54 +15,6 @@ class SqlQueries:
         ;
     """
 
-    staging_events_table_create= ("""
-    CREATE TABLE IF NOT EXISTS public.staging_events (artist     VARCHAR,
-    auth           VARCHAR,
-    firstName      VARCHAR,
-    gender         VARCHAR,
-    itemInSession  SMALLINT,
-    lastName       VARCHAR,
-    length         FLOAT,
-    level          VARCHAR,
-    location       VARCHAR,
-    method         VARCHAR,
-    page           VARCHAR,
-    registration   FLOAT,
-    sessionId      SMALLINT,
-    song           VARCHAR,
-    status         INT,
-    TS             FLOAT,
-    userAgent      VARCHAR,
-    userId         INT);""")
-
-    staging_songs_table_create = ("""
-    CREATE TABLE IF NOT EXISTS staging_songs (
-    num_songs        INT,
-    artist_id        VARCHAR,
-    artist_latitude  FLOAT,
-    artist_longitude FLOAT,
-    artist_location  VARCHAR,
-    artist_name      VARCHAR,
-    song_id          VARCHAR,
-    title            VARCHAR,
-    duration         FLOAT,
-    year             INT);
-    """)
-
-    songplay_table_create = ("""
-    CREATE TABLE public.songplays (
-    playid varchar(32) NOT NULL,
-    start_time timestamp NOT NULL,
-    userid int4 NOT NULL,
-    "level" varchar(256),
-    songid varchar(256),
-    artistid varchar(256),
-    sessionid int4,
-    location varchar(256),
-    user_agent varchar(256),
-    CONSTRAINT songplays_pkey PRIMARY KEY (playid));
-    """)
-
     songplay_table_insert = ("""
         SELECT
                 md5(events.sessionid || events.start_time) songplay_id,
